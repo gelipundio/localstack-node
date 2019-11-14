@@ -1,0 +1,36 @@
+version: '3'
+services:
+  lambda-parser:
+    build: .
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - AWS_ACCESS_KEY_ID=foobar
+      - AWS_SECRET_ACCESS_KEY=foobar
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_S3_ENDPOINT=http://lambda-parser-aws:4572
+      - AWS_S3_PATH_STYLE=true
+      - AWS_DDB_ENDPOINT=http://lambda-parser-aws:4569
+    depends_on:
+      - lambda-parser-aws
+    command: sh -c "yarn && yarn dev"
+  lambda-parser-aws:
+    image: localstack/localstack:0.8.7
+    ports:
+      - "5000:8080"
+      - "4572:4572"
+      - "4569:4569"
+    expose:
+      - "4572"
+      - "4569"
+    environment:
+      - SERVICES=s3,dynamodb
+      - HOSTNAME=lambda-parser-aws
+      - DATA_DIR=/tmp/localstack/data
+    volumes:
+      - "local_stack:/tmp/localstack"
+
+volumes:
+  local_stack:
+    external: true
